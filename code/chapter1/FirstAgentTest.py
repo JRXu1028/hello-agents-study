@@ -168,7 +168,8 @@ for i in range(5): # 设置最大循环次数
     
     # 3.2. 调用LLM进行思考
     llm_output = llm.generate(full_prompt, system_prompt=AGENT_SYSTEM_PROMPT)
-    # 模型可能会输出多余的Thought-Action，需要截断
+    # 模型可能会输出多余的Thought-Action，需要截断 
+    # 每次循环，只做一件事，确保只保留第一对Thought-Action
     match = re.search(r'(Thought:.*?Action:.*?)(?=\n\s*(?:Thought:|Action:|Observation:)|\Z)', llm_output, re.DOTALL)
     if match:
         truncated = match.group(1).strip()
@@ -193,11 +194,13 @@ for i in range(5): # 设置最大循环次数
         print(f"任务完成，最终答案: {final_answer}")
         break
     
+    # 找到第一个 word(，取 word 作为工具名（例如 get_weather）
     tool_name = re.search(r"(\w+)\(", action_str).group(1)
     args_str = re.search(r"\((.*)\)", action_str).group(1)
     kwargs = dict(re.findall(r'(\w+)="([^"]*)"', args_str))
 
     if tool_name in available_tools:
+        # 根据解析出的 tool_name 找到对应函数，然后把 kwargs 作为关键字参数传进去调用
         observation = available_tools[tool_name](**kwargs)
     else:
         observation = f"错误：未定义的工具 '{tool_name}'"
