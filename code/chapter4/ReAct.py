@@ -38,19 +38,24 @@ class ReActAgent:
             current_step += 1
             print(f"\n--- 第 {current_step} 步 ---")
 
+            # 1. 格式化提示词
             tools_desc = self.tool_executor.getAvailableTools()
             history_str = "\n".join(self.history)
+            # 将工具描述、问题和历史记录填充到提示模板中
             prompt = REACT_PROMPT_TEMPLATE.format(tools=tools_desc, question=question, history=history_str)
 
+            # 2. 调用LLM进行思考
             messages = [{"role": "user", "content": prompt}]
             response_text = self.llm_client.think(messages=messages)
             if not response_text:
                 print("错误：LLM未能返回有效响应。"); break
 
+            # 3. 解析LLM的输出
             thought, action = self._parse_output(response_text)
             if thought: print(f"🤔 思考: {thought}")
             if not action: print("警告：未能解析出有效的Action，流程终止。"); break
             
+            # 4. 执行Action
             if action.startswith("Finish"):
                 # 如果是Finish指令，提取最终答案并结束
                 final_answer = self._parse_action_input(action)
@@ -66,12 +71,18 @@ class ReActAgent:
             observation = tool_function(tool_input) if tool_function else f"错误：未找到名为 '{tool_name}' 的工具。"
             
             print(f"👀 观察: {observation}")
+            # 将本轮的Action和Observation添加到历史记录中
             self.history.append(f"Action: {action}")
             self.history.append(f"Observation: {observation}")
 
         print("已达到最大步数，流程终止。")
         return None
 
+    """
+    从大模型输出中，提取：
+        1 Thought(思考内容)
+        2 Action(要执行的动作)
+    """
     def _parse_output(self, text: str):
         # Thought: 匹配到 Action: 或文本末尾
         thought_match = re.search(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
@@ -81,10 +92,18 @@ class ReActAgent:
         action = action_match.group(1).strip() if action_match else None
         return thought, action
 
+    """
+    把 Action 拆成：
+        1 工具名(Tool)
+        2 工具参数(Input)
+    """
     def _parse_action(self, action_text: str):
         match = re.match(r"(\w+)\[(.*)\]", action_text, re.DOTALL)
         return (match.group(1), match.group(2)) if match else (None, None)
 
+    """
+    只提取 Action 里的参数部分（中括号里的内容）
+    """
     def _parse_action_input(self, action_text: str):
         match = re.match(r"\w+\[(.*)\]", action_text, re.DOTALL)
         return match.group(1) if match else ""
