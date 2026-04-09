@@ -1,3 +1,8 @@
+基于 [hello-agents](https://github.com/datawhalechina/hello-agents.git) 修改和学习。  
+
+作者：JRXu1028
+
+本项目仅用于学习和研究目的。
 <div align="right">
   <a href="./README_EN.md">English</a> | 中文
 </div>
