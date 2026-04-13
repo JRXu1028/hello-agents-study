@@ -20,9 +20,18 @@ from autogen_agentchat.ui import Console
 def create_openai_model_client():
     """创建 OpenAI 模型客户端用于测试"""
     return OpenAIChatCompletionClient(
-        model=os.getenv("LLM_MODEL_ID", "gpt-4o"),
-        api_key=os.getenv("LLM_API_KEY"),
-        base_url=os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+        model="deepseek-chat",
+        api_key="sk-2e40525f65a4498981243378c905c630",
+        base_url="https://api.deepseek.com/v1",
+        model_info={
+            "function_calling": True,
+            "max_tokens": 4096,
+            "context_length": 32768,
+            "vision": False,
+            "json_output": True,
+            "family": "deepseek",
+            "structured_output": True,
+        }
     )
 
 def create_product_manager(model_client):
@@ -164,6 +173,7 @@ async def run_software_development_team():
     print("=" * 60)
     
     # 使用 Console 来显示对话过程
+    # 异步 让程序在“等待数据生成”的过程中不阻塞，从而可以持续接收和处理流式输出
     result = await Console(team_chat.run_stream(task=task))
     
     print("\n" + "=" * 60)
