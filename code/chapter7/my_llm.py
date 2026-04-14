@@ -13,6 +13,7 @@ class MyLLM(HelloAgentsLLM):
         provider: Optional[str] = "auto",
         **kwargs
     ):
+        # 支持多提供商自动检测，优先使用环境变量中的provider设置
         # 检查provider是否为我们想处理的'modelscope'
         if provider == "modelscope":
             print("正在使用自定义的 ModelScope Provider")
@@ -27,7 +28,8 @@ class MyLLM(HelloAgentsLLM):
                 raise ValueError("ModelScope API key not found. Please set MODELSCOPE_API_KEY environment variable.")
 
             # 设置默认模型和其他参数
-            self.model = model or os.getenv("LLM_MODEL_ID") or "Qwen/Qwen2.5-VL-72B-Instruct"
+            # self.model = model or os.getenv("LLM_MODEL_ID") or "Qwen/Qwen2.5-VL-72B-Instruct"
+            self.model = model or "Qwen/Qwen3-8B"
             self.temperature = kwargs.get('temperature', 0.7)
             self.max_tokens = kwargs.get('max_tokens')
             self.timeout = kwargs.get('timeout', 60)
